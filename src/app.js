@@ -3,7 +3,8 @@ import { Routes, MessageFlags } from 'discord-api-types/v10';
 import * as yaml from 'js-yaml';
 import * as fs from 'fs';
 import * as mt from './mt_translation.js';
-import { request } from 'http';
+import * as sanitize  from 'validator';
+
 
 const BASE_CONFIG = yaml.load(fs.readFileSync('./conf/base.yml', 'utf8'));
 
@@ -347,7 +348,8 @@ export async function interactionCreate(interaction){
                     await interaction.editReply({content:' => Now Mode : ' + get_translation_mode(interaction.user.id, USER_CONFIG), flags: MessageFlags.Ephemeral });
                 }
                 else if (interaction.commandName === 'set-translation') {
-                    var item = interaction.options.get("mode").value;
+                    // データ貰ってくる時に、サニタイジングしておく
+                    var item = sanitize(interaction.options.get("mode").value).entityEncode();
                     await interaction.editReply({content:' => Set Mode : ' + item, flags: MessageFlags.Ephemeral });
                     // Set
                     USER_CONFIG['users'][interaction.user.id] = item;

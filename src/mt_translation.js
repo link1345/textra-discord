@@ -1,5 +1,6 @@
 import * as yaml from 'js-yaml';
 import * as fs from 'fs';
+import * as sanitize  from 'validator';
 
 const BASE_CONFIG = yaml.load(fs.readFileSync('./conf/base.yml', 'utf8'));
 
