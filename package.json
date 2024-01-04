@@ -1,5 +1,5 @@
 {
-  "name": "textra_discord",
+  "name": "textra-discord",
   "version": "1.0.0",
   "description": "Discord Bot using TextTra.",
   "main": "index.js",
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/link1345/Textra-discord.git"
+    "url": "git+https://github.com/link1345/textra-discord.git"
   },
   "author": "",
   "license": "MIT",
