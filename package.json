@@ -2,6 +2,7 @@
   "name": "textra-discord",
   "version": "1.0.0",
   "description": "Discord Bot using TextTra.",
+  "type": "module",
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -16,5 +17,10 @@
   "bugs": {
     "url": "https://github.com/link1345/Textra-discord/issues"
   },
-  "homepage": "https://github.com/link1345/Textra-discord#readme"
+  "homepage": "https://github.com/link1345/Textra-discord#readme",
+  "dependencies": {
+    "axios": "^1.6.4",
+    "discord.js": "^14.14.1",
+    "js-yaml": "^4.1.0"
+  }
 }

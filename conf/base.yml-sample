@@ -1,0 +1,61 @@
+app : 
+  discord_token : '----'
+  mt_key : '----
+  mt_secret : '----'
+  mt_loginname : '----'
+
+mt_translation : 
+   default_engine: 'generalNT_ja_en'
+
+commands :
+ - name : 'translation'
+   type : 3
+   name_localizations : 
+    "ja" : "翻訳"
+    "bg" : "Преводът на"    
+    "zh-CN" : "翻译"
+    "zh-TW" : "翻譯"    
+    "hr" : "Prevod je"
+    "cs" : "Překládání je"    
+    "da" : "Oversættelse"
+    "nl" : "Oversetting"    
+    "en-GB" : "translation"
+    "en-US" : "translation"
+    "fi" : "Käännös on"    
+    "fr" : "Traduction"
+    "de" : "Übersetzung"    
+    "el" : "Η μετάφραση"
+    "hi" : "अनुवाद"
+    "hu" : "Fordítás"
+    "id" : "Terjemahan"
+    "it" : "Traduzione"
+    "ko" : "번역"
+    "lt" : "Vertimas į"
+    "no" : "oversettelsen av"
+    "pl" : "Tłumaczenie"
+    "pt-BR" : "Tradução"
+    "ro" : "Traducerea este"
+    "ru" : "Перевод"
+    "es-ES" : "Traducción"
+    "sv-SE" : "Det är en översättning"
+    "th" : "การแปล"
+    "tr" : "Tercüme"
+    "uk" : "Переклад"
+    "vi" : "Bản dịch"
+ - name : 'help'
+   description : 'You can check the current translation mode.'
+   type : 1
+ - name : 'now-translation'
+   description : 'You can check the current translation mode.'
+   type : 1
+ - name : 'set-translation'
+   description : 'You can change the translation mode. Use the Help command to learn how to use it.'
+   type : 1
+   options :
+    - name : 'mode'
+      description : 'Mode Name'
+      type : 3
+      required : true
+ - name : 'setting-clear'
+   description : 'You can change the translation mode. Use the Help command to learn how to use it.'
+   type : 1
