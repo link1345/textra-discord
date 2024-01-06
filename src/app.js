@@ -1,27 +1,19 @@
 import { Client, GatewayIntentBits } from 'discord.js';
-import { Routes, MessageFlags } from 'discord-api-types/v10';
+import { Routes, MessageFlags , ChannelType , PermissionFlagsBits } from 'discord-api-types/v10';
 import * as yaml from 'js-yaml';
 import * as fs from 'fs';
 import * as mt from './mt_translation.js';
-import * as sanitize  from 'validator';
-
+import sanitize  from 'validator';
+import * as database from './db.js';
 
 const BASE_CONFIG = yaml.load(fs.readFileSync('./conf/base.yml', 'utf8'));
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMessages] });
 
-var command = []
+let command = []
 
 export async function ready(){
     console.log(`Logged in as ${client.user.tag}!`);
-}
-
-function get_translation_mode(id, user_config){
-    if( id in user_config['users'] ){
-        return user_config['users'][id];
-    }else {
-        return "Auto";
-    }
 }
 
 function save_yaml(filename, json_text){
@@ -35,8 +27,6 @@ function save_yaml(filename, json_text){
 
 export async function interactionCreate(interaction){
 
-    var USER_CONFIG = yaml.load(fs.readFileSync('./conf/user.yml', 'utf8'));
-
     try {
         if (interaction.isChatInputCommand())
         {
@@ -46,7 +36,7 @@ export async function interactionCreate(interaction){
 
             try {
                 if (interaction.commandName === 'help') {
-                    var message = "";
+                    let message = "";
                     switch(interaction.locale){
                         case "ja" :
                             message += "** -- 翻訳前の言語について -- **\n";
@@ -345,29 +335,33 @@ export async function interactionCreate(interaction){
                     interaction.editReply({content:message, flags: MessageFlags.Ephemeral });
                 }
                 else if (interaction.commandName === 'now-translation') {
-                    await interaction.editReply({content:' => Now Mode : ' + get_translation_mode(interaction.user.id, USER_CONFIG), flags: MessageFlags.Ephemeral });
+                    interaction.editReply({content:' => Now Mode : ' + await database.check_user_mt_translation_mode(interaction.user.id), flags: MessageFlags.Ephemeral });
                 }
                 else if (interaction.commandName === 'set-translation') {
                     // データ貰ってくる時に、サニタイジングしておく
-                    var item = sanitize(interaction.options.get("mode").value).entityEncode();
-                    await interaction.editReply({content:' => Set Mode : ' + item, flags: MessageFlags.Ephemeral });
+                    let item = sanitize.escape(interaction.options.get("mode").value);
+                    interaction.editReply({content:' => Set Mode : ' + item, flags: MessageFlags.Ephemeral });
                     // Set
-                    USER_CONFIG['users'][interaction.user.id] = item;
-                    // Save
-                    save_yaml('./conf/user.yml', USER_CONFIG);        
+                    database.change_user_mode(sanitize.escape(interaction.user.id), item);
                 }
                 else if (interaction.commandName === 'setting-clear') {
                     if( interaction.user.id in USER_CONFIG['users'] ){
-                        // Clear
-                        delete USER_CONFIG['users'][interaction.user.id];
-                        await interaction.editReply({content:' => Clear!', flags: MessageFlags.Ephemeral });                    
-                        // Save
-                        save_yaml('./conf/user.yml', USER_CONFIG);        
+                        interaction.editReply({content:' => Clear!', flags: MessageFlags.Ephemeral });
+                        database.check_user_mt_translation_mode(sanitize.escape(interaction.user.id), "Auto");
                     }
+                }
+                else if (interaction.commandName === 'guild-setting') {
+                    // データ貰ってくる時に、サニタイジングしておく
+                    let mt_key = sanitize.escape(interaction.options.get("mt_key").value);
+                    let mt_secret = sanitize.escape(interaction.options.get("mt_secret").value);
+                    let mt_loginname = sanitize.escape(interaction.options.get("mt_loginname").value);
+                    // Set
+                    database.change_guild_setting(sanitize.escape(interaction.guild.id), mt_key, mt_secret, mt_loginname);
+                    interaction.editReply({content:' => Guild OK !', flags: MessageFlags.Ephemeral });
                 }
 
             } catch (error) {
-                await interaction.editReply("Error!");
+                interaction.editReply("Error!");
             }
 
             return;
@@ -381,16 +375,22 @@ export async function interactionCreate(interaction){
                 return;
             }
 
+            const database_guild = await database.check_guild_setting(interaction.guild.id);
+            if(database_guild["hit"] == false){                
+                await interaction.reply({content:'Guildに対する設定がされていません', flags: MessageFlags.Ephemeral });
+                return;
+            }
+
             // 待ち(表示)
             await interaction.deferReply();            
             try {
                 if (interaction.commandName === 'translation') {
                     // 翻訳をしてもらう 
-                    var translation_mode = get_translation_mode(interaction.user.id, USER_CONFIG)
+                    let translation_mode = await database.check_user_mt_translation_mode(database_guild["return_item"])
 
-                    var convert_message = "";
+                    let convert_message = "";
                     if(translation_mode == "Auto"){        
-                        const original_lang = await mt.call_langdetect_api(reqest.content);
+                        const original_lang = await mt.call_langdetect_api(database_guild["return_item"], reqest.content);
                         const converted_lang = interaction.locale;
                         convert_message = "**[Translation : " + original_lang + " > " + converted_lang + "]**\n";
 
@@ -399,11 +399,11 @@ export async function interactionCreate(interaction){
                             reqest.reply({content: "**[Error]** It cannot be translated because it is in the same language as the environment."});
                             return;
                         }
-                        translation_mode = await mt.call_standard_api(original_lang,converted_lang);
+                        translation_mode = await mt.call_standard_api(database_guild["return_item"], original_lang, converted_lang);
                     }else{
                         convert_message = "**[Translation Mode : " + translation_mode + "]**\n";
                     }
-                    const mt_response = await mt.call_api(reqest.content, translation_mode);
+                    const mt_response = await mt.call_api(database_guild["hit"], eqest.content, translation_mode);
                     // 翻訳結果を返す
                     interaction.deleteReply();
                     reqest.reply({content: convert_message + mt_response});
@@ -433,6 +433,8 @@ async function initCommnad(){
 
 export function run(){
 
+    database.create_db();
+    
     client.on('ready', async () => {
         await ready();
     });
@@ -441,20 +443,26 @@ export function run(){
         await interactionCreate(interaction);
     });
 
-    client.on('GuildAvailable ', async guild => {
-        const item_channels = guild.channels.filter((c) => c.type === 0 && viewable == true);
-        if(item_channels.length > 0){        
-
-            var message = "**Hello!**\n";
-            message += "I am [textra-discord] .\n";
-            message += "It is developed with OSS. This is a discord bot.\n";
-            message += "This uses `みんなの自動翻訳@textra🄬` to translate characters.\n";
-            message += "Please read the URL page for details!\n";
-            message += "Github(discord bot) : https://github.com/link1345/textra-discord\n";
-            message += "translate Engine(`みんなの自動翻訳@textra🄬`)' : https://mt-auto-minhon-mlt.ucri.jgn-x.jp/\n";
-            item_channels[0].send(message);
-
-        }
+    client.on('guildCreate', async guild => {
+        let message = "**Hello! thank you for inviting me!**\n";
+        message += "I am [textra-discord] .\n";
+        message += "It is developed with OSS. This is a discord bot.\n";
+        message += "This uses `みんなの自動翻訳@textra🄬` to translate characters.\n";
+        message += "Please read the URL page for details!\n";
+        message += "Github(discord bot) : https://github.com/link1345/textra-discord\n";
+        message += "translate Engine(`みんなの自動翻訳@textra🄬`)' : https://mt-auto-minhon-mlt.ucri.jgn-x.jp/\n";
+        
+        let defaultChannel = "";
+        guild.channels.cache.forEach((channel) => {
+            if(channel.type == ChannelType.GuildText && defaultChannel == "") {
+                const chennel_bit = channel.permissionsFor(guild.members.me);
+                if( chennel_bit.has(PermissionFlagsBits.SendMessages) && chennel_bit.has(PermissionFlagsBits.ViewChannel) ) {
+                    defaultChannel = channel;
+                }
+            }
+        });
+        if(defaultChannel == "") return;
+        defaultChannel.send(message);
 
     })
     

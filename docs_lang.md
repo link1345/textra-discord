@@ -1,5 +1,5 @@
 
-#　translation mode
+# translation mode
 
 翻訳に使用するエンジンを変える場合は、下記の中で該当Keyを使用してください。
 

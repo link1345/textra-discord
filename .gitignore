@@ -1,2 +1,4 @@
 node_modules
 base.yml
+db/*
+!.gitkeep
