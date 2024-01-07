@@ -1,11 +1,5 @@
 app : 
-  discord_token : '----'
-  mt_key : '----
-  mt_secret : '----'
-  mt_loginname : '----'
-
-mt_translation : 
-   default_engine: 'generalNT_ja_en'
+  discord_token : '---'
 
 commands :
  - name : 'translation'
@@ -42,14 +36,32 @@ commands :
     "tr" : "Tercüme"
     "uk" : "Переклад"
     "vi" : "Bản dịch"
+ - name : 'hidden-translation'
+   type : 3
+   name_localizations : 
+    "ja" : "翻訳(非公開)"
+    "en-GB" : "translation(privete)"
+    "en-US" : "translation(privete)"
  - name : 'help'
-   description : 'You can check the current translation mode.'
+   description : 'Is is Help.'
+   description_localizations : 
+    "ja" : "ヘルプ"
+    "en-GB" : "Is is Help."
+    "en-US" : "Is is Help."
    type : 1
  - name : 'now-translation'
    description : 'You can check the current translation mode.'
+   description_localizations : 
+    "ja" : "ユーザーの翻訳モード設定を確認します。"
+    "en-GB" : "You can check the current translation mode."
+    "en-US" : "You can check the current translation mode."
    type : 1
  - name : 'set-translation'
-   description : 'You can change the translation mode. Use the Help command to learn how to use it.'
+   description : 'Sets the user translation mode.'
+   description_localizations : 
+    "ja" : "ユーザーの翻訳モードを設定します。"
+    "en-GB" : "Sets the user translation mode."
+    "en-US" : "Sets the user translation mode."
    type : 1
    options :
     - name : 'mode'
@@ -57,5 +69,29 @@ commands :
       type : 3
       required : true
  - name : 'setting-clear'
-   description : 'You can change the translation mode. Use the Help command to learn how to use it.'
+   description : 'Clears the user translation mode settings.'
+   description_localizations : 
+    "ja" : "ユーザーの翻訳モード設定を消去します。"
+    "en-GB" : "Clears the user translation mode settings."
+    "en-US" : "Clears the user translation mode settings."
    type : 1
+ - name : 'guild-setting'
+   description : 'You can set up a translation account. (Guild unit)'
+   description_localizations : 
+    "ja" : "翻訳アカウント設定が出来ます。(Guild単位)"
+    "en-GB" : "You can set up a translation account. (Guild unit)"
+    "en-US" : "You can set up a translation account. (Guild unit)"
+   type : 1
+   options :
+    - name : 'mt_key'
+      description : 'api key'
+      type : 3
+      required : true
+    - name : 'mt_secret'
+      description : 'api secret'
+      type : 3
+      required : true
+    - name : 'mt_loginname'
+      description : 'api loginname'
+      type : 3
+      required : true

@@ -92,12 +92,13 @@ export async function change_user_mode(user_id, mode){
       db.each('SELECT * FROM user_mt_translation_mode WHERE user_id = ?', [user_id], function(err, row) {
         if (err){
           // エラー処理
+            return console.error(err.message);
             db.close();
             resolve();
         }else{
           // SQLの実行結果が1件以上の場合
           console.log(row.user_id + ":" + row.translation_mode + " > " + mode);
-          db.run('UPDATE user_mt_translation_mode SET user_id = ? WHERE translation_mode = ?', [user_id, mode] , err => {
+          db.run('UPDATE user_mt_translation_mode SET translation_mode = ? WHERE user_id = ?', [mode, user_id] , err => {
             if (err) {
                 return console.error(err.message);
             }            
@@ -313,6 +314,58 @@ export async function check_guild_setting(guild_id){
     
                   db.close();
                   resolve({ "hit" : hit_flag, "return_item" : return_item});
+              }else{
+                  //その他(基本的何もしない)
+              }
+          }
+      });
+    
+    });
+  
+  }); 
+}
+
+
+export async function delete_guild_setting(guild_id){
+  return new Promise((resolve, reject) => {
+    const db = new sqlite3.Database(db_path);
+
+    db.serialize( ()=> {
+      db.each('SELECT * FROM guild_setting WHERE guild_id = ?', [guild_id], function(err, row) {
+        if (err){
+            // エラー処理
+            console.log(err);
+            db.close();
+            resolve(false);
+        }else{
+            // SQLの実行結果が1件以上の場合
+            db.run('DELETE FROM guild_setting WHERE guild_id = ?', guild_id, err => {
+              if (err) {
+                  console.error(err.message);
+                  db.close();
+                  resolve(false);
+              }
+            });
+
+            db.close();
+            resolve(true);
+          }
+      }, function(err, count){  //←complete処理追加
+          // SQL実行直後に上のコールバック処理が走る前にここが処理
+          if (err){
+              // エラー処理
+              console.log(err);
+              db.close();
+              resolve(false);
+          }else{
+              if (count == 0){
+                  // SQLの実行結果が0件の場合
+                  // user情報追加
+                  hit_flag = false;
+                  return_item = [];
+    
+                  db.close();
+                  resolve(false);
               }else{
                   //その他(基本的何もしない)
               }
