@@ -295,7 +295,7 @@ export async function help(interaction){
             message += "Tên chế độ có thể được tìm thấy tại liên kết bên dưới. Chỉ định tên chế độ.\n";
             break;  
     }                
-    message += "minimum Page: https://mt-auto-minhon-mlt.ucri.jgn-x.jp/content/mt/\n";
+    message += "minimum Page: https://github.com/link1345/textra-discord/blob/main/docs_lang.md\n";
     message += "full Page: https://mt-auto-minhon-mlt.ucri.jgn-x.jp/content/mt/\n";
     interaction.editReply({content:message, flags: MessageFlags.Ephemeral });
 }
