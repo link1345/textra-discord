@@ -105,7 +105,11 @@ Create an account at [みんなの自動翻訳@textra🄬]( https://mt-auto-minh
 
 変換元の言語を自動認識して、お使いの言語に変換してくれます。
 
-2. 翻訳モード選択(「set-translation」コマンド)
+---
+
+Right-click the comment you want translated and click the "Translate" button from "App" to translate it.
+
+2. 翻訳モード選択(「set-translation」コマンド) : Translation mode selection (“set-translation” command)
 
 https://github.com/link1345/textra-discord/blob/main/docs_lang.md
 
