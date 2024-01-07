@@ -1,4 +1,5 @@
 import { Client } from 'discord.js';
+import { Routes, MessageFlags , ChannelType , PermissionFlagsBits } from 'discord-api-types/v10';
 
 export async function help(interaction){
     let message = "";
