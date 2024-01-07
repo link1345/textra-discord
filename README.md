@@ -51,6 +51,12 @@ There are two installation methods.
 
 https://discord.com/api/oauth2/authorize?client_id=678939530031529995&permissions=277025429504&scope=bot
 
+---
+
+Please visit the link below and invite DiscordBot to your guild.
+
+https://discord.com/api/oauth2/authorize?client_id=678939530031529995&permissions=277025429504&scope=bot
+
 ### ソースコードを自分の環境で実行して利用する方法 (How to run and use the source code in your own environment)
 
 #### Install
@@ -72,11 +78,13 @@ npm run start
 #### 「guild-setting」コマンドの権限変更 (Change permissions for "guild-setting" command)
 
 guild-settingは、ギルド全体の設定です。これの設定を変更されてしまうと、翻訳機能が使えなくなります。
+
 サーバー管理者以外が、変更できないようにしておくことが強くお勧めします。
 
 ---
 
 guild-setting is a guild-wide setting. If you change this setting, you will no longer be able to use the translation function.
+
 It is strongly recommended that no one other than the server administrator make changes.
 
 #### Guildに対する設定 (Settings for Guild)
@@ -98,6 +106,10 @@ Create an account at [みんなの自動翻訳@textra🄬]( https://mt-auto-minh
 #### 翻訳してみる (Try translating it)
 
 翻訳してほしいコメントを右クリックで「アプリ」から「翻訳」というボタンをクリックすると翻訳を行います。
+
+---
+
+Right-click the comment you want translated and click the "Translate" button from "App" to translate it.
 
 #### 翻訳を行う言語を変える (Change the language for translation)
 
