@@ -1,5 +1,9 @@
 # textra-discord 
 
+Zennで、画像を使って分かりやすく説明しています。ご興味があれば、ご覧ください。
+
+https://zenn.dev/test_myname/articles/translation_discordbot
+
 このリポジトリは、[みんなの自動翻訳@textra🄬]( https://mt-auto-minhon-mlt.ucri.jgn-x.jp/)を利用したテキスト翻訳DiscordBotです。
 
 このBotを使用する際には、[みんなの自動翻訳@textra🄬]( https://mt-auto-minhon-mlt.ucri.jgn-x.jp/)のアカウント(WebAPIのAPIkeyとAPIsecretが必須)が必要です。
