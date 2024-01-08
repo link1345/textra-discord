@@ -145,6 +145,22 @@ Translation will be performed by selecting the translation mode from the list ab
 
 There are versions for patent writing and dialogue, so if you are interested, we recommend choosing one.
 
+## コマンド権限を変えたい
+
+コマンドが実行できるユーザーを制限したいことがあるかと思います。
+
+discordのデフォルトの機能を使えば、簡単に出来ます。下記に書いておきます。
+
+---
+
+You may want to restrict the users who can execute commands.
+
+You can easily do this using Discord's reliable features. I will write it below.
+
+![](./docs/image1.png)
+
+![](./docs/image2.png)
+
 
 ## LICENSE
 
