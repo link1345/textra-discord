@@ -1,9 +1,9 @@
-import {Client} from 'discord.js';
+import { ChatInputCommandInteraction, CacheType } from 'discord.js';
 import {
-	Routes, MessageFlags, ChannelType, PermissionFlagsBits,
+	MessageFlags,
 } from 'discord-api-types/v10';
 
-export async function help(interaction) {
+export async function help(interaction: ChatInputCommandInteraction<CacheType>) {
 	let message = '';
 	switch (interaction.locale) {
 		case 'ja':
@@ -301,5 +301,5 @@ export async function help(interaction) {
 
 	message += 'minimum Page: https://github.com/link1345/textra-discord/blob/main/docs_lang.md\n';
 	message += 'full Page: https://mt-auto-minhon-mlt.ucri.jgn-x.jp/content/mt/\n';
-	interaction.editReply({content: message, flags: MessageFlags.Ephemeral});
+	interaction.editReply({ content: message });
 }

@@ -24,9 +24,9 @@
   },
   "homepage": "https://github.com/link1345/Textra-discord#readme",
   "dependencies": {
+    "@typescript-eslint/parser": "^8.33.0",
     "discord.js": "^14.19.3",
     "js-yaml": "^4.1.0",
-    "sqlite3": "^5.1.7",
     "typescript": "^5.8.3",
     "validator": "^13.15.15"
   },

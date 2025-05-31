@@ -1,70 +1,104 @@
-import { Client, GatewayIntentBits } from 'discord.js';
 import {
-	MessageFlags, ChannelType, PermissionFlagsBits,
+	Client,
+	GatewayIntentBits,
+	Interaction,
+	CacheType,
+	TextChannel,
+	ApplicationCommandDataResolvable,
+	Collection,
+	Snowflake,
+	ApplicationCommand,
+	GuildResolvable
+} from 'discord.js';
+import {
+	MessageFlags,
+	ChannelType,
+	PermissionFlagsBits,
 } from 'discord-api-types/v10';
 import * as yaml from 'js-yaml';
 import * as fs from 'fs';
-import * as mt from './mt_translation.js';
+import { getToken } from './mt_translation.js';
 import sanitize from 'validator';
-import * as database from './db.js';
+import {
+	createDb,
+	checkUserMtTranslationMode,
+	changeUserMode,
+	changeGuildSetting,
+	getGuildSetting,
+	deleteGuildSetting
+} from './db.js';
+import { help } from './command_help.js';
+import { translation } from './command_translation.js';
 
-import * as command_help from './command_help.js';
-import * as command_translation from './command_translation.js';
-
-const BASE_CONFIG = yaml.load(fs.readFileSync('./conf/base.yml', 'utf8'));
+const baseConfig = yaml.load(fs.readFileSync('./conf/base.yml', 'utf8')) as {
+	app: {
+		discord_token: string
+	}
+	commands: ApplicationCommandDataResolvable[]
+};
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMessages] });
 
-let command = [];
+let command: Collection<Snowflake, ApplicationCommand<{ guild: GuildResolvable }>> | undefined = undefined;
 
 export async function ready() {
-	console.log(`Logged in as ${client.user.tag}!`);
+	console.log(`Logged in as ${client.user?.tag}!`);
 }
 
-function save_yaml(filename, json_text) {
-	const yamlText = yaml.dump(json_text);
-	try {
-		fs.writeFileSync(filename, yamlText, 'utf8');
-	} catch (err) {
-		console.error(err.message);
-	}
-}
-
-export async function interactionCreate(interaction) {
+export async function interactionCreate(interaction: Interaction<CacheType>) {
 	try {
 		if (interaction.isChatInputCommand()) {
 			// 待ち(非表示)
-			await interaction.deferReply({ ephemeral: true });
+			await interaction.deferReply({ flags: "Ephemeral" });
 
 			try {
 				if (interaction.commandName === 'help') {
-					await command_help.help(interaction);
+					await help(interaction);
 				} else if (interaction.commandName === 'now-translation') {
-					interaction.editReply({ content: ' => Now Mode : ' + await database.check_user_mt_translation_mode(interaction.user.id), flags: MessageFlags.Ephemeral });
+					await interaction.editReply({
+						content: `=> Now Mode : ' ${await checkUserMtTranslationMode(interaction.user.id)}`
+					});
 				} else if (interaction.commandName === 'set-translation') {
 					// データ貰ってくる時に、サニタイジングしておく
-					const item = sanitize.escape(interaction.options.get('mode').value);
-					interaction.editReply({ content: ' => Set Mode : ' + item, flags: MessageFlags.Ephemeral });
+					const item = sanitize.escape(interaction.options.getString("mode") ?? "");
+					interaction.editReply({ content: ` => Set Mode : ${item}` });
 					// Set
-					database.change_user_mode(sanitize.escape(interaction.user.id), item);
+					changeUserMode(sanitize.escape(interaction.user.id), item);
 				} else if (interaction.commandName === 'setting-clear') {
-					interaction.editReply({ content: ' => Clear!', flags: MessageFlags.Ephemeral });
-					database.change_user_mode(sanitize.escape(interaction.user.id), 'Auto');
+					interaction.editReply({ content: ' => Clear!' });
+					changeUserMode(sanitize.escape(interaction.user.id), 'Auto');
 				} else if (interaction.commandName === 'guild-setting') {
 					// データ貰ってくる時に、サニタイジングしておく
-					const mt_key = sanitize.escape(interaction.options.get('mt_key').value);
-					const mt_secret = sanitize.escape(interaction.options.get('mt_secret').value);
-					const mt_loginname = sanitize.escape(interaction.options.get('mt_loginname').value);
+					const mtKey = sanitize.escape(interaction.options.getString('mt_key') ?? "");
+					const mtSecret = sanitize.escape(interaction.options.getString('mt_secret') ?? "");
+					const mtLoginname = sanitize.escape(interaction.options.getString('mt_loginname') ?? "");
+
+					const guidlId = interaction.guild?.id;
+					if (!guidlId) {
+						await interaction.reply({ content: 'Guild is not configured.', flags: MessageFlags.Ephemeral });
+						return;
+					}
+
 					// Set
-					await database.change_guild_setting(sanitize.escape(interaction.guild.id), mt_key, mt_secret, mt_loginname);
-					const guild_data = await database.check_guild_setting(sanitize.escape(interaction.guild.id), mt_key, mt_secret, mt_loginname);
-					const token_return = await mt.getToken(guild_data.return_item);
-					if (token_return == false) {
+					await changeGuildSetting({
+						guildId: sanitize.escape(interaction.guild?.id ?? ""),
+						mtKey,
+						mtSecret,
+						mtLoginname
+					});
+					const guild = await getGuildSetting(sanitize.escape(guidlId));
+					if (!guild || guild instanceof Error) {
+						interaction.editReply({ content: ' => Guild NG !' });
+						return;
+					}
+
+					const tokenReturn = await getToken(guild);
+					if (tokenReturn == false) {
 						// アカウント情報取得に失敗したら、警告出してDBから消す。
-						interaction.editReply({ content: ' => Guild NG !', flags: MessageFlags.Ephemeral });
-						database.delete_guild_setting(sanitize.escape(interaction.guild.id));
+						interaction.editReply({ content: ' => Guild NG !' });
+						deleteGuildSetting(sanitize.escape(interaction.guild?.id ?? ""));
 					} else {
-						interaction.editReply({ content: ' => Guild OK !', flags: MessageFlags.Ephemeral });
+						interaction.editReply({ content: ' => Guild OK !' });
 					}
 				}
 			} catch (error) {
@@ -72,14 +106,18 @@ export async function interactionCreate(interaction) {
 			}
 		} else if (interaction.isContextMenuCommand()) {
 			// 自分のメッセージを蹴る
-			const reqest = interaction.options.getMessage('message');
-			if (client.user.id == reqest.member.user.id) {
+			const reqest = interaction.options.get('message')?.message;
+			if (reqest && client.user?.id == reqest.member?.user.id) {
 				await interaction.reply({ content: 'Cannot reply to bot own messages.', flags: MessageFlags.Ephemeral });
 				return;
 			}
+			if (!reqest) {
+				await interaction.reply({ content: 'An unknown error has occurred.', flags: MessageFlags.Ephemeral });
+				return;
+			}
 
-			const database_guild = await database.check_guild_setting(interaction.guild.id);
-			if (database_guild.hit == false) {
+			const guild = await getGuildSetting(sanitize.escape(interaction.guild?.id ?? ""));
+			if (!guild || guild instanceof Error) {
 				await interaction.reply({ content: 'Guild is not configured.', flags: MessageFlags.Ephemeral });
 				return;
 			}
@@ -89,10 +127,10 @@ export async function interactionCreate(interaction) {
 			try {
 				if (interaction.commandName === 'translation') {
 					// 翻訳をしてもらう
-					await command_translation.translation(interaction, database_guild, reqest, false);
+					await translation(interaction, guild, reqest, false);
 				} else if (interaction.commandName === 'hidden-translation') {
 					// 翻訳をしてもらう
-					await command_translation.translation(interaction, database_guild, reqest, true);
+					await translation(interaction, guild, reqest, true);
 				}
 			} catch (error) {
 				console.log(error);
@@ -107,7 +145,7 @@ export async function interactionCreate(interaction) {
 async function initCommnad() {
 	try {
 		console.log('Started refreshing application (/) commands.');
-		command = await client.application.commands.set(BASE_CONFIG.commands);
+		command = await client.application?.commands.set(baseConfig.commands);
 		console.log('Successfully reloaded application (/) commands.');
 	} catch (error) {
 		console.error(error);
@@ -115,7 +153,7 @@ async function initCommnad() {
 }
 
 export function run() {
-	database.create_db();
+	createDb();
 
 	client.on('ready', async () => {
 		await ready();
@@ -134,27 +172,26 @@ export function run() {
 		message += 'Github(discord bot) : https://github.com/link1345/textra-discord\n';
 		message += 'translate Engine(`みんなの自動翻訳@textra🄬`)\' : https://mt-auto-minhon-mlt.ucri.jgn-x.jp/\n';
 
-		let defaultChannel = '';
-		guild.channels.cache.forEach(channel => {
-			if (channel.type === ChannelType.GuildText && defaultChannel === '') {
+		let defaultChannel: TextChannel | undefined = undefined;
+
+		for (var guildChannel of guild.channels.cache) {
+			const channel = guildChannel[1];
+			if (channel.type === ChannelType.GuildText && guild.members.me) {
 				const chennel_bit = channel.permissionsFor(guild.members.me);
 				if (chennel_bit.has(PermissionFlagsBits.SendMessages) && chennel_bit.has(PermissionFlagsBits.ViewChannel)) {
 					defaultChannel = channel;
+					break;
 				}
 			}
-		});
-		if (defaultChannel === '') {
-			return;
 		}
 
+		if (!defaultChannel) {
+			return;
+		}
 		defaultChannel.send(message);
 	});
 
-	client.login(BASE_CONFIG.app.discord_token).then(async () => {
+	client.login(baseConfig.app.discord_token).then(async () => {
 		initCommnad();
 	});
-}
-
-export async function exit() {
-	// Await client.application.commands.set([]);
 }
