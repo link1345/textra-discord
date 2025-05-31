@@ -1,5 +1,7 @@
 node_modules
 base.yml
+base.yaml
 db/*
 !.gitkeep
 .env
+output

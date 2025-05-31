@@ -2,10 +2,11 @@
   "name": "textra-discord",
   "version": "1.0.1",
   "description": "Discord Bot using TextTra.",
-  "type": "module",
-  "main": "src/index.js",
+  "type": "commonjs",
+  "main": "output/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc --outDir output",
     "start": "node .",
     "lint": "npx eslint src/**",
     "lint:fix": "npx eslint src/** --fix"

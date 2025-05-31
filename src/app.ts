@@ -52,7 +52,7 @@ export async function interactionCreate(interaction: Interaction<CacheType>) {
 					await help(interaction);
 				} else if (interaction.commandName === 'now-translation') {
 					await interaction.editReply({
-						content: `=> Now Mode : ' ${await checkUserMtTranslationMode(interaction.user.id)}`,
+						content: `=> Now Mode : ${await checkUserMtTranslationMode(interaction.user.id)}`,
 					});
 				} else if (interaction.commandName === 'set-translation') {
 					// データ貰ってくる時に、サニタイジングしておく
@@ -98,7 +98,7 @@ export async function interactionCreate(interaction: Interaction<CacheType>) {
 					}
 				}
 			} catch (error) {
-				interaction.editReply('Error!');
+				await interaction.editReply('Error!');
 				console.log(error);
 			}
 		} else if (interaction.isContextMenuCommand()) {
@@ -121,7 +121,7 @@ export async function interactionCreate(interaction: Interaction<CacheType>) {
 			}
 
 			// 待ち(表示)
-			await interaction.deferReply({ ephemeral: true });
+			await interaction.deferReply({ flags: "Ephemeral" });
 			try {
 				if (interaction.commandName === 'translation') {
 					// 翻訳をしてもらう
