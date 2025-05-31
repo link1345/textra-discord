@@ -2,14 +2,14 @@
   "name": "textra-discord",
   "version": "1.0.1",
   "description": "Discord Bot using TextTra.",
-  "type": "commonjs",
+  "type": "module",
   "main": "output/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc --outDir output",
     "start": "node .",
-    "lint": "npx eslint src/**",
-    "lint:fix": "npx eslint src/** --fix"
+    "lint": "eslint",
+    "lint:fix": "eslint --fix"
   },
   "repository": {
     "type": "git",
@@ -25,6 +25,7 @@
   },
   "homepage": "https://github.com/link1345/Textra-discord#readme",
   "dependencies": {
+    "@types/eslint": "^9.6.1",
     "@typescript-eslint/parser": "^8.33.0",
     "discord.js": "^14.19.3",
     "js-yaml": "^4.1.0",
