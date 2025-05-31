@@ -1,16 +1,15 @@
 import { DatabaseSync } from 'node:sqlite';
-import sanitize from 'validator';
 
 const dbPath = './db/textra_db';
 const db = new DatabaseSync(dbPath);
 
 export type GuildSetting = {
-	guildId: string,
-	mtKey: string,
-	mtSecret: string,
-	mtLoginname: string,
-	accessToken: string,
-	accessTokenTime: number,
+	guildId: string;
+	mtKey: string;
+	mtSecret: string;
+	mtLoginname: string;
+	accessToken: string;
+	accessTokenTime: number;
 };
 
 class DatabaseError extends Error {
@@ -24,7 +23,7 @@ export function createDb(): undefined | DatabaseError {
 	try {
 		db.open();
 
-		// user_mt_translation_modeテーブルを作成。
+		// User_mt_translation_modeテーブルを作成。
 		const select = db.prepare('SELECT * FROM sqlite_master WHERE TYPE = ? AND name = ?');
 		const TableMt = select.all('table', 'user_mt_translation_mode');
 		if (TableMt.length === 0) {
@@ -32,7 +31,7 @@ export function createDb(): undefined | DatabaseError {
 			tableCreate.run();
 		}
 
-		// guild_settingテーブルを作成。
+		// Guild_settingテーブルを作成。
 		const tableGuild = select.all('table', 'guild_setting');
 		if (tableGuild.length === 0) {
 			const tableCreate = db.prepare('CREATE TABLE guild_setting (guild_id, mt_key, mt_secret, mt_loginname, access_token, access_token_time)');
@@ -40,8 +39,6 @@ export function createDb(): undefined | DatabaseError {
 		}
 
 		db.close();
-
-		return;
 	} catch (error) {
 		console.error(error);
 		return new DatabaseError();
@@ -51,9 +48,9 @@ export function createDb(): undefined | DatabaseError {
 /**
  * ユーザーの翻訳モードを変更する
  * Auto=情報を消す [other]=登録or上書き
- * @param userId 
- * @param mode 
- * @returns 
+ * @param userId
+ * @param mode
+ * @returns
  */
 export function changeUserMode(userId: string, mode: string): string | DatabaseError {
 	try {
@@ -83,7 +80,6 @@ export function changeUserMode(userId: string, mode: string): string | DatabaseE
 		rowUpdate.run(mode, userId);
 		db.close();
 		return mode;
-
 	} catch (error) {
 		console.error(error);
 		return new DatabaseError();
@@ -98,13 +94,13 @@ export async function checkUserMtTranslationMode(userId: string) {
 	try {
 		db.open();
 
-		let mode = "Auto";
+		let mode = 'Auto';
 
 		const rowSelect = db.prepare('SELECT * FROM user_mt_translation_mode WHERE user_id = ?');
 		const items = rowSelect.all(userId);
 
 		if (items.length !== 0) {
-			mode = items[0]['translation_mode']?.toString() ?? "Auto";
+			mode = items[0].translation_mode?.toString() ?? 'Auto';
 		}
 
 		db.close();
@@ -131,10 +127,10 @@ export function changeGuildSetting(guildItem: { guildId: string, mtKey: string, 
 			rowUpdate.run(mtKey, mtSecret, mtLoginname, guildId);
 		} else {
 			const rowInsert = db.prepare('INSERT INTO guild_setting VALUES(?,?,?,?,?,?)');
-			rowInsert.run(guildId, mtKey, mtSecret, mtLoginname, '', 0)
+			rowInsert.run(guildId, mtKey, mtSecret, mtLoginname, '', 0);
 		}
+
 		db.close();
-		return;
 	} catch (error) {
 		console.error(error);
 		return new DatabaseError();
@@ -157,7 +153,6 @@ export function changeGuildToken(guildId: string, accessToken: string, accessTok
 		}
 
 		db.close();
-		return;
 	} catch (error) {
 		console.error(error);
 		return new DatabaseError();
@@ -175,24 +170,25 @@ export function getGuildSetting(guildId: string): undefined | GuildSetting | Dat
 		const rowSelect = db.prepare('SELECT * FROM guild_setting WHERE guild_id = ?');
 		const tablesItems = rowSelect.all(guildId);
 
-		let items: GuildSetting | undefined = undefined;
+		let items: GuildSetting | undefined;
 		if (tablesItems.length !== 0) {
 			const item = tablesItems[0];
 			items = {
-				guildId: item.guild_id?.toString() ?? "",
-				mtKey: item.mt_key?.toString() ?? "",
-				mtSecret: item.mt_secret?.toString() ?? "",
-				mtLoginname: item.mt_loginname?.toString() ?? "",
-				accessToken: item.access_token?.toString() ?? "",
-				accessTokenTime: Number(item.access_token_time?.toString()) ?? 0
-			}
+				guildId: item.guild_id?.toString() ?? '',
+				mtKey: item.mt_key?.toString() ?? '',
+				mtSecret: item.mt_secret?.toString() ?? '',
+				mtLoginname: item.mt_loginname?.toString() ?? '',
+				accessToken: item.access_token?.toString() ?? '',
+				accessTokenTime: Number(item.access_token_time?.toString()) ?? 0,
+			};
 		}
-		if (!items ||
-			items.accessToken === "" &&
-			items.mtKey === "" &&
-			items.mtSecret === "" &&
-			items.mtLoginname === "" &&
-			items.accessToken === ""
+
+		if (!items
+			|| items.accessToken === ''
+			&& items.mtKey === ''
+			&& items.mtSecret === ''
+			&& items.mtLoginname === ''
+			&& items.accessToken === ''
 		) {
 			items = undefined;
 			return;
@@ -222,7 +218,6 @@ export function deleteGuildSetting(guildId: string): undefined | DatabaseError {
 		}
 
 		db.close();
-		return;
 	} catch (error) {
 		console.error(error);
 		return new DatabaseError();

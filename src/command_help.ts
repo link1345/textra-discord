@@ -1,10 +1,7 @@
-import { ChatInputCommandInteraction, CacheType } from 'discord.js';
-import {
-	MessageFlags,
-} from 'discord-api-types/v10';
+import {ChatInputCommandInteraction, CacheType} from 'discord.js';
 
 export async function help(interaction: ChatInputCommandInteraction<CacheType>) {
-	let message = '';
+	let message: string = '';
 	switch (interaction.locale) {
 		case 'ja':
 			message += '** -- 翻訳前の言語について -- **\n';
@@ -301,5 +298,5 @@ export async function help(interaction: ChatInputCommandInteraction<CacheType>) 
 
 	message += 'minimum Page: https://github.com/link1345/textra-discord/blob/main/docs_lang.md\n';
 	message += 'full Page: https://mt-auto-minhon-mlt.ucri.jgn-x.jp/content/mt/\n';
-	interaction.editReply({ content: message });
+	interaction.editReply({content: message});
 }

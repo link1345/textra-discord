@@ -1,15 +1,9 @@
-import config from 'eslint-config-xo';
-import { defineConfig } from 'eslint/config';
+import globals from "globals";
+import tseslint from "typescript-eslint";
+import { defineConfig } from "eslint/config";
+
 
 export default defineConfig([
-	config,
-	[
-		{
-			rules: {
-				camelcase: ["error", { properties: "never" }],
-				semi: ["error", "always"],
-			},
-			parser: '@typescript-eslint/parser',
-		},
-	]
+  { files: ["**/*.{js,mjs,cjs,ts,mts,cts}"], languageOptions: { globals: globals.browser } },
+  tseslint.configs.recommended,
 ]);
